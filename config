@@ -9,7 +9,7 @@
         "modules-center": ["hyprland/window", "custom/spotify"],
         "modules-right": [
                 "battery",
-		"custom/cava",
+                "custom/cava",
                 "pulseaudio",
                 "tray",
                 "clock",
@@ -99,9 +99,7 @@
         "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"
     ],
     "on-click-right": "gnome-system-monitor"
-},         
-
-},
+},        
         "memory": {
                 "on-click-release": "kitty -e btop",
                 "interval": 5,
@@ -196,7 +194,7 @@
                 "higher_cutoff_freq": 10000,
                 "method": "pulse",
                 "source": "auto",
- "stereo": true,
+                "stereo": true,
                 "reverse": false,
                 "bar_delimiter": 0,
                 "monstercat": false,
@@ -216,13 +214,14 @@
                 "on-scroll-up": "playerctl -p spotify next",
                 "on-scroll-down": "playerctl -p spotify previous"
         },
-"custom/cava": {
-    "exec": "~/.config/waybar/cava-spotify.sh",
-    "format": "{}",
-    "tooltip": false,
-    "restart-interval": 1,
-    "on-click": "playerctl -p spotify play-pause",
-    "on-scroll-up": "playerctl -p spotify next",
-    "on-scroll-down": "playerctl -p spotify previous"
-},
+        "custom/cava": {
+            "exec": "~/.config/waybar/cava-spotify.sh",
+            "format": "{}",
+            "tooltip": false,
+            "restart-interval": 1,
+            "return-type": "json",
+            "on-click": "playerctl -p spotify play-pause",
+            "on-scroll-up": "playerctl -p spotify next",
+            "on-scroll-down": "playerctl -p spotify previous"
+        }
 }
