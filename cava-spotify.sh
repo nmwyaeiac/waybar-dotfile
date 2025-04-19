@@ -42,7 +42,8 @@ if [[ -z "$ARTIST" || -z "$TITLE" || -z "$STATUS" ]]; then
     if [[ -z "$BARS" ]]; then
         BARS="▁▂▃▄▅▆▇█"
     fi
-    echo "$BARS"
+    # Sortie JSON simple sans classe particulière
+    echo "{\"text\":\"$BARS\", \"class\":\"\"}"
     exit 0
 fi
 
@@ -74,9 +75,12 @@ fi
 
 # Afficher les informations selon le statut
 if [[ "$STATUS" == "Playing" ]]; then
-    echo "$BARS  $ARTIST - $TITLE"
+    # Sortie JSON avec classe "playing"
+    echo "{\"text\":\"$BARS  $ARTIST - $TITLE\", \"class\":\"playing\"}"
 elif [[ "$STATUS" == "Paused" ]]; then
-    echo "$BARS  $ARTIST - $TITLE"
+    # Sortie JSON avec classe "paused"
+    echo "{\"text\":\"$BARS  $ARTIST - $TITLE\", \"class\":\"paused\"}"
 else
-    echo "$BARS"
+    # Sortie JSON simple sans classe particulière
+    echo "{\"text\":\"$BARS\", \"class\":\"\"}"
 fi
