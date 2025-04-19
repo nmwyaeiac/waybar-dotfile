@@ -346,18 +346,35 @@ label:focus {
 	border-radius: 5px;
 }
 
-/* Règles pour le module custom-cava */
-
-/* Règles pour le module custom-cava */
-#custom-cava {
-    color: #7dcfff;
+/* Règles pour les modules de visualisation audio */
+#cava {
     font-family: "JetBrainsMono Nerd Font";
     font-weight: bold;
     font-size: 110%; /* Légèrement plus grand pour une meilleure visibilité */
     padding: 0 5px;
     border-radius: 8px;
-    min-width: 150px; /* Plus large pour les 12 barres */
+    min-width: 120px;
     letter-spacing: 0.5px; /* Espacement légèrement accru entre les caractères */
+    margin-right: 5px;
+    color: #7dcfff;
+}
+
+#custom-spotify-info {
+    color: #1ed760;  /* Couleur verte Spotify */
+    padding-left: 5px;
+    font-weight: bold;
+}
+
+/* Anciennes règles maintenues pour compatibilité */
+#custom-cava {
+    color: #7dcfff;
+    font-family: "JetBrainsMono Nerd Font";
+    font-weight: bold;
+    font-size: 110%;
+    padding: 0 5px;
+    border-radius: 8px;
+    min-width: 150px;
+    letter-spacing: 0.5px;
     margin-right: 5px;
 }
 
