@@ -216,14 +216,5 @@
                         "on-scroll-down": "playerctl -p spotify previous"
                 }
         },
-        "custom/cava": {
-            "exec": "~/.config/waybar/cava-spotify.sh",
-            "format": "{}",
-            "tooltip": false,
-            "restart-interval": 1,
-            "return-type": "json",
-            "on-click": "playerctl -p spotify play-pause",
-            "on-scroll-up": "playerctl -p spotify next",
-            "on-scroll-down": "playerctl -p spotify previous"
-        }
+       
 }
