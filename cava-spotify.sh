@@ -32,6 +32,7 @@ bars = 12
 framerate = 60
 
 [input]
+# Utiliser pulse si pipewire ne fonctionne pas
 method = pipewire
 source = auto
 
@@ -52,34 +53,20 @@ EOF
 
 # Fonction pour obtenir la visualisation
 get_visualizer() {
-    # Utiliser timeout pour éviter que cava ne reste bloqué
-    # La modification clé est ici : nous ne prenons qu'une seule ligne mais nous conservons tous les segments
-    timeout 1s cava -p "$CONFIG_FILE" 2>/dev/null | head -n 1 | tr -d '\n' || echo "▁▁▁▁▁▁▁▁▁▁▁▁"
+    # Utiliser une approche plus robuste pour cava
+    # Augmenter le timeout à 3 secondes pour donner à cava le temps de s'initialiser
+    timeout 3s cava -p "$CONFIG_FILE" 2>/dev/null | head -n 1 | tr -d '\n' || echo "▁▁▁▁▁▁▁▁▁▁▁▁"
 }
 
-# Vérifier si Spotify fonctionne
-if [[ -z "$ARTIST" || -z "$TITLE" || -z "$STATUS" ]]; then
-    # Si Spotify ne tourne pas, juste la visualisation de base
-    BARS=$(get_visualizer | tr '0-7' '▁▂▃▄▅▆▇█')
-    if [[ -z "$BARS" ]]; then
-        BARS="▁▁▁▁▁▁▁▁▁▁▁▁"
-    fi
-    # Sortie JSON simple sans classe particulière
-    echo "{\"text\":\"$BARS\", \"class\":\"\"}"
-    exit 0
-fi
-
-# Tronquer les chaînes si trop longues
-if [[ "${#ARTIST_ESCAPED}" -gt 15 ]]; then
-    ARTIST_ESCAPED="${ARTIST_ESCAPED:0:15}..."
-fi
-if [[ "${#TITLE_ESCAPED}" -gt 15 ]]; then
-    TITLE_ESCAPED="${TITLE_ESCAPED:0:15}..."
+# Vérifier si Spotify fonctionne et si cava peut être démarré
+if pidof cava >/dev/null; then
+    # Si cava est déjà en cours d'exécution, attendez qu'il se termine
+    sleep 0.5
 fi
 
 # Obtenir barres de visualisation
 RAW_BARS=$(get_visualizer)
-if [[ -z "$RAW_BARS" ]]; then
+if [[ -z "$RAW_BARS" || "$RAW_BARS" == "▁▁▁▁▁▁▁▁▁▁▁▁" ]]; then
     # Si CAVA échoue, utiliser une animation basée sur le temps
     SECOND=$(date +%S)
     MOD=$((SECOND % 8))
@@ -98,14 +85,27 @@ else
     BARS=$(echo "$RAW_BARS" | tr '0-7' '▁▂▃▄▅▆▇█')
 fi
 
+# Tronquer les chaînes si trop longues
+if [[ "${#ARTIST_ESCAPED}" -gt 15 ]]; then
+    ARTIST_ESCAPED="${ARTIST_ESCAPED:0:15}..."
+fi
+if [[ "${#TITLE_ESCAPED}" -gt 15 ]]; then
+    TITLE_ESCAPED="${TITLE_ESCAPED:0:15}..."
+fi
+
 # Afficher les informations selon le statut
-if [[ "$STATUS" == "Playing" ]]; then
-    # Sortie JSON avec classe "playing"
-    echo "{\"text\":\"$BARS  $ARTIST_ESCAPED - $TITLE_ESCAPED\", \"class\":\"playing\"}"
-elif [[ "$STATUS" == "Paused" ]]; then
-    # Sortie JSON avec classe "paused"
-    echo "{\"text\":\"$BARS  $ARTIST_ESCAPED - $TITLE_ESCAPED\", \"class\":\"paused\"}"
+if [[ -n "$ARTIST" && -n "$TITLE" && -n "$STATUS" ]]; then
+    if [[ "$STATUS" == "Playing" ]]; then
+        # Sortie JSON avec classe "playing"
+        echo "{\"text\":\"$BARS  $ARTIST_ESCAPED - $TITLE_ESCAPED\", \"class\":\"playing\"}"
+    elif [[ "$STATUS" == "Paused" ]]; then
+        # Sortie JSON avec classe "paused"
+        echo "{\"text\":\"$BARS  $ARTIST_ESCAPED - $TITLE_ESCAPED\", \"class\":\"paused\"}"
+    else
+        # Sortie JSON simple sans classe particulière
+        echo "{\"text\":\"$BARS\", \"class\":\"\"}"
+    fi
 else
-    # Sortie JSON simple sans classe particulière
+    # Si Spotify ne tourne pas, juste la visualisation de base
     echo "{\"text\":\"$BARS\", \"class\":\"\"}"
 fi
