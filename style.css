@@ -345,3 +345,21 @@ label:focus {
 	min-height: 10px;
 	border-radius: 5px;
 }
+
+/* Règles pour le module custom-cava */
+#custom-cava {
+    color: #7dcfff;
+    font-family: "JetBrainsMono Nerd Font";
+    font-weight: bold;
+    padding: 0 5px;
+    border-radius: 8px;
+    min-width: 100px;
+}
+
+#custom-cava.playing {
+    color: #1ed760;  /* Couleur verte Spotify */
+}
+
+#custom-cava.paused {
+    color: #e0af68;  /* Couleur ambre/orange */
+}
