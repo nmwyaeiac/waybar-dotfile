@@ -10,8 +10,8 @@ STATUS=$(playerctl -p $PLAYER status 2>/dev/null)
 CONFIG_FILE="/tmp/cava_config"
 cat > "$CONFIG_FILE" << EOF
 [general]
-bars = 8
-framerate = 30
+bars = 12
+framerate = 60
 
 [input]
 method = pipewire
@@ -23,8 +23,11 @@ raw_target = /dev/stdout
 data_format = ascii
 ascii_max_range = 7
 
+[color]
+foreground = 'default'
+
 [smoothing]
-monstercat = 0
+monstercat = 1
 waves = 0
 noise_reduction = 0.77
 EOF
@@ -32,15 +35,16 @@ EOF
 # Fonction pour obtenir la visualisation
 get_visualizer() {
     # Utiliser timeout pour éviter que cava ne reste bloqué
-    timeout 0.5s cava -p "$CONFIG_FILE" 2>/dev/null | sed -u 's/;/\n/g' | stdbuf -o0 tr -d "[:digit:];" | stdbuf -o0 tr '0-7' '▁▂▃▄▅▆▇█' | head -n 1 || echo "▁▂▃▄▅▆▇█"
+    # La modification clé est ici : nous ne prenons qu'une seule ligne mais nous conservons tous les segments
+    timeout 1s cava -p "$CONFIG_FILE" 2>/dev/null | head -n 1 | tr -d '\n' || echo "▁▁▁▁▁▁▁▁▁▁▁▁"
 }
 
 # Vérifier si Spotify fonctionne
 if [[ -z "$ARTIST" || -z "$TITLE" || -z "$STATUS" ]]; then
-    # Si Spotify ne tourne pas, juste la visualisation
-    BARS=$(get_visualizer)
+    # Si Spotify ne tourne pas, juste la visualisation de base
+    BARS=$(get_visualizer | tr '0-7' '▁▂▃▄▅▆▇█')
     if [[ -z "$BARS" ]]; then
-        BARS="▁▂▃▄▅▆▇█"
+        BARS="▁▁▁▁▁▁▁▁▁▁▁▁"
     fi
     # Sortie JSON simple sans classe particulière
     echo "{\"text\":\"$BARS\", \"class\":\"\"}"
@@ -56,21 +60,24 @@ if [[ "${#TITLE}" -gt 15 ]]; then
 fi
 
 # Obtenir barres de visualisation
-BARS=$(get_visualizer)
-if [[ -z "$BARS" ]]; then
+RAW_BARS=$(get_visualizer)
+if [[ -z "$RAW_BARS" ]]; then
     # Si CAVA échoue, utiliser une animation basée sur le temps
     SECOND=$(date +%S)
     MOD=$((SECOND % 8))
     case $MOD in
-        0) BARS="▁▂▃▄▅▆▇█" ;;
-        1) BARS="█▁▂▃▄▅▆▇" ;;
-        2) BARS="▇█▁▂▃▄▅▆" ;;
-        3) BARS="▆▇█▁▂▃▄▅" ;;
-        4) BARS="▅▆▇█▁▂▃▄" ;;
-        5) BARS="▄▅▆▇█▁▂▃" ;;
-        6) BARS="▃▄▅▆▇█▁▂" ;;
-        7) BARS="▂▃▄▅▆▇█▁" ;;
+        0) BARS="▁▂▃▄▅▆▇█▇▆▅▄" ;;
+        1) BARS="▂▃▄▅▆▇█▇▆▅▄▃" ;;
+        2) BARS="▃▄▅▆▇█▇▆▅▄▃▂" ;;
+        3) BARS="▄▅▆▇█▇▆▅▄▃▂▁" ;;
+        4) BARS="▅▆▇█▇▆▅▄▃▂▁▂" ;;
+        5) BARS="▆▇█▇▆▅▄▃▂▁▂▃" ;;
+        6) BARS="▇█▇▆▅▄▃▂▁▂▃▄" ;;
+        7) BARS="█▇▆▅▄▃▂▁▂▃▄▅" ;;
     esac
+else
+    # Convertir les données brutes en barres visuelles
+    BARS=$(echo "$RAW_BARS" | tr '0-7' '▁▂▃▄▅▆▇█')
 fi
 
 # Afficher les informations selon le statut
