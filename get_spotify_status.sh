@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Fonction pour échapper les caractères spéciaux XML/HTML
+escape_xml() {
+    echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
+}
+
 # Chemin du script
 PARENT_BAR="waybar"
 PARENT_BAR_PID=$(pgrep -a "waybar" | head -n 1 | awk '{print $1}')
@@ -28,19 +33,23 @@ if [[ -z "$ARTIST" || -z "$TITLE" ]]; then
     exit 0
 fi
 
+# Échapper les caractères spéciaux
+ARTIST_ESCAPED=$(escape_xml "$ARTIST")
+TITLE_ESCAPED=$(escape_xml "$TITLE")
+
 # Troncature des chaînes si elles sont trop longues
-if [[ "${#ARTIST}" -gt 20 ]]; then
-    ARTIST="${ARTIST:0:20}..."
+if [[ "${#ARTIST_ESCAPED}" -gt 20 ]]; then
+    ARTIST_ESCAPED="${ARTIST_ESCAPED:0:20}..."
 fi
-if [[ "${#TITLE}" -gt 20 ]]; then
-    TITLE="${TITLE:0:20}..."
+if [[ "${#TITLE_ESCAPED}" -gt 20 ]]; then
+    TITLE_ESCAPED="${TITLE_ESCAPED:0:20}..."
 fi
 
 # Affiche les informations en fonction du statut
 if [[ "$STATUS" == "Playing" ]]; then
-    echo " $ARTIST - $TITLE"
+    echo " $ARTIST_ESCAPED - $TITLE_ESCAPED"
 elif [[ "$STATUS" == "Paused" ]]; then
-    echo " $ARTIST - $TITLE"
+    echo " $ARTIST_ESCAPED - $TITLE_ESCAPED"
 else
     echo ""
 fi
