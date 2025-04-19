@@ -25,14 +25,15 @@ else
 fi
 
 # Créer configuration CAVA temporaire
-CONFIG_FILE="/tmp/cava_config"
+CONFIG_FILE="/tmp/cava_config_waybar"
 cat > "$CONFIG_FILE" << EOF
 [general]
 bars = 12
 framerate = 60
+autosens = 1
+sensitivity = 100
 
 [input]
-# Utiliser pulse si pipewire ne fonctionne pas
 method = pipewire
 source = auto
 
@@ -53,59 +54,52 @@ EOF
 
 # Fonction pour obtenir la visualisation
 get_visualizer() {
-    # Utiliser une approche plus robuste pour cava
-    # Augmenter le timeout à 3 secondes pour donner à cava le temps de s'initialiser
+    # Timeout augmenté pour permettre l'initialisation
     timeout 3s cava -p "$CONFIG_FILE" 2>/dev/null | head -n 1 | tr -d '\n' || echo "▁▁▁▁▁▁▁▁▁▁▁▁"
 }
 
-# Vérifier si Spotify fonctionne et si cava peut être démarré
-if pidof cava >/dev/null; then
-    # Si cava est déjà en cours d'exécution, attendez qu'il se termine
-    sleep 0.5
-fi
-
-# Obtenir barres de visualisation
-RAW_BARS=$(get_visualizer)
-if [[ -z "$RAW_BARS" || "$RAW_BARS" == "▁▁▁▁▁▁▁▁▁▁▁▁" ]]; then
-    # Si CAVA échoue, utiliser une animation basée sur le temps
-    SECOND=$(date +%S)
-    MOD=$((SECOND % 8))
-    case $MOD in
-        0) BARS="▁▂▃▄▅▆▇█▇▆▅▄" ;;
-        1) BARS="▂▃▄▅▆▇█▇▆▅▄▃" ;;
-        2) BARS="▃▄▅▆▇█▇▆▅▄▃▂" ;;
-        3) BARS="▄▅▆▇█▇▆▅▄▃▂▁" ;;
-        4) BARS="▅▆▇█▇▆▅▄▃▂▁▂" ;;
-        5) BARS="▆▇█▇▆▅▄▃▂▁▂▃" ;;
-        6) BARS="▇█▇▆▅▄▃▂▁▂▃▄" ;;
-        7) BARS="█▇▆▅▄▃▂▁▂▃▄▅" ;;
-    esac
-else
-    # Convertir les données brutes en barres visuelles
-    BARS=$(echo "$RAW_BARS" | tr '0-7' '▁▂▃▄▅▆▇█')
-fi
-
-# Tronquer les chaînes si trop longues
-if [[ "${#ARTIST_ESCAPED}" -gt 15 ]]; then
-    ARTIST_ESCAPED="${ARTIST_ESCAPED:0:15}..."
-fi
-if [[ "${#TITLE_ESCAPED}" -gt 15 ]]; then
-    TITLE_ESCAPED="${TITLE_ESCAPED:0:15}..."
-fi
-
-# Afficher les informations selon le statut
+# Vérifier si Spotify fonctionne
 if [[ -n "$ARTIST" && -n "$TITLE" && -n "$STATUS" ]]; then
-    if [[ "$STATUS" == "Playing" ]]; then
-        # Sortie JSON avec classe "playing"
-        echo "{\"text\":\"$BARS  $ARTIST_ESCAPED - $TITLE_ESCAPED\", \"class\":\"playing\"}"
-    elif [[ "$STATUS" == "Paused" ]]; then
-        # Sortie JSON avec classe "paused"
-        echo "{\"text\":\"$BARS  $ARTIST_ESCAPED - $TITLE_ESCAPED\", \"class\":\"paused\"}"
+    # Obtenir barres de visualisation
+    RAW_BARS=$(get_visualizer)
+    
+    # Si CAVA échoue ou retourne vide, utiliser une animation de secours
+    if [[ -z "$RAW_BARS" || "$RAW_BARS" == "▁▁▁▁▁▁▁▁▁▁▁▁" ]]; then
+        SECOND=$(date +%S)
+        MOD=$((SECOND % 8))
+        case $MOD in
+            0) BARS="▁▂▃▄▅▆▇█▇▆▅▄" ;;
+            1) BARS="▂▃▄▅▆▇█▇▆▅▄▃" ;;
+            2) BARS="▃▄▅▆▇█▇▆▅▄▃▂" ;;
+            3) BARS="▄▅▆▇█▇▆▅▄▃▂▁" ;;
+            4) BARS="▅▆▇█▇▆▅▄▃▂▁▂" ;;
+            5) BARS="▆▇█▇▆▅▄▃▂▁▂▃" ;;
+            6) BARS="▇█▇▆▅▄▃▂▁▂▃▄" ;;
+            7) BARS="█▇▆▅▄▃▂▁▂▃▄▅" ;;
+        esac
     else
-        # Sortie JSON simple sans classe particulière
-        echo "{\"text\":\"$BARS\", \"class\":\"\"}"
+        # Convertir les données brutes en barres visuelles
+        BARS=$(echo "$RAW_BARS" | awk '{
+            gsub(/0/, "▁");
+            gsub(/1/, "▂");
+            gsub(/2/, "▃");
+            gsub(/3/, "▄");
+            gsub(/4/, "▅");
+            gsub(/5/, "▆");
+            gsub(/6/, "▇");
+            gsub(/7/, "█");
+            print
+        }')
     fi
-else
-    # Si Spotify ne tourne pas, juste la visualisation de base
-    echo "{\"text\":\"$BARS\", \"class\":\"\"}"
-fi
+
+    # Tronquer les textes si trop longs
+    if [[ "${#ARTIST_ESCAPED}" -gt 15 ]]; then
+        ARTIST_ESCAPED="${ARTIST_ESCAPED:0:15}..."
+    fi
+    if [[ "${#TITLE_ESCAPED}" -gt 15 ]]; then
+        TITLE_ESCAPED="${TITLE_ESCAPED:0:15}..."
+    fi
+
+    # Afficher selon le statut
+    if [[ "$STATUS" == "Playing" ]]; then
+        echo "{\"text\":\"$BARS $ARTIST_ESCAPED - $TITLE_ESCAPED
