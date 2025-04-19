@@ -1,7 +1,4 @@
-//* ---- 💫 https://github.com/JaKooLit 💫 ---- *//
-/* Waybar Modules */
 
-/* NOTE: hyprland-workspaces, Custom Modules, Custom Vertical & Groups on a separate files */
 
 {
 
@@ -97,9 +94,8 @@
 
 "clock": {
 	"interval": 1,
-    "format": " {:%I:%M %p}", // AM PM format
+     "format": " {:%H:%M   %Y, %d %B, %A}",
     //"format": " {:%H:%M:%S}",// 24H
-	"format-alt": " {:%H:%M   %Y, %d %B, %A}",
 	"tooltip-format": "<tt><small>{calendar}</small></tt>",
 	"calendar": {
 		"mode": "year",
